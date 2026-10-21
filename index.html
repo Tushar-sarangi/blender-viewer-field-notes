@@ -355,15 +355,15 @@
 
       <article class="story">
         <div class="story-visual">
-          <img src="assets/default-cube-poster.svg" alt="A glowing orange Blender default cube lifted above its starting point" loading="lazy" width="800" height="450">
+          <img src="assets/default-cube-loop.gif?v=lift-camera-v3" alt="The gray Blender default cube rising and returning in a looping animation" loading="lazy" width="800" height="450">
         </div>
         <div class="story-meta"><span>Factory-startup study</span><span>Looping object-action keys</span></div>
         <h3>First Lift</h3>
         <p class="story-copy">The familiar default cube rises along Z, returns to the origin, and repeats its small stop-motion gesture.</p>
         <div class="story-actions">
           <button class="button primary" type="button" data-load-scene="cube">Load in viewer ↗</button>
-          <a class="button" href="assets/default-cube.blend" download>Download .blend ↓</a>
-          <a class="button" href="assets/default-cube-poster.svg" target="_blank" rel="noopener">Still frame ↗</a>
+          <a class="button" href="assets/default-cube.blend?v=lift-camera-v3" download>Download .blend ↓</a>
+          <a class="button" href="assets/default-cube-poster.png?v=lift-camera-v3" target="_blank" rel="noopener">Still frame ↗</a>
         </div>
       </article>
     </section>
@@ -397,7 +397,7 @@
     const scenes = {
       lantern: { title: "Lantern Ridge", file: "assets/lantern-ridge.blend" },
       moon: { title: "Paper Moon", file: "assets/paper-moon-signal.blend" },
-      cube: { title: "First Lift", file: "assets/default-cube.blend" }
+      cube: { title: "First Lift", file: "assets/default-cube.blend?v=lift-camera-v3" }
     };
     const iframe = document.getElementById("browser-preview");
     const title = document.getElementById("current-title");
@@ -432,4 +432,5 @@
   </script>
 </body>
 </html>
+
 

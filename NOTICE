@@ -1,0 +1,30 @@
+This distribution includes changes to the Blender .blend URL Viewer from
+simonw/tools (https://github.com/simonw/tools), maintained by Simon Willison
+and contributors. The upstream work is licensed under the Apache License,
+Version 2.0. The complete original license text is retained in LICENSE.
+
+Modifications in this derivative:
+- OpenAI Codex (OC), 2026-10-21: added Blender 5.x object-action playback,
+  timeline play/pause and scrubbing controls, and looping; documented the
+  supported channels and limitations in blender-viewer.docs.md.
+- Added blender-viewer-demo.blend as an animated sample based on Blender 5.0's
+  factory-startup scene. Its Cube custom properties record the sample credit
+  and the initials OC.
+
+The upstream source snapshot did not contain a NOTICE file.
+
+Additional Blender example scenes and previews:
+- OpenAI Codex (OC), 2026-10-21: created the Lantern Ridge and Paper Moon
+  procedural scene examples, stop-motion object-action animation, rendered
+  looping previews, and blender-viewer-previews.md.
+- Their terrain meshes were generated with A.N.T. Landscape 0.2.0, the official
+  Blender extension. The extension credits Jimmy Hazevoet and Blender
+  Foundation contributors; the extension manifest identifies copyright 2024
+  Jimmy Hazevoet and license GPL-2.0-or-later. Its source code is not included
+  or modified in this distribution.
+
+Additional standalone showcase bundle:
+- OpenAI Codex (OC), 2026-10-22: created index.html as a cinematic landing page with an embedded viewer, scene switching, and same-origin Pages asset loading; copied only the viewer and the two sample scenes, loops, and posters into this publication bundle.
+- The showcase bundle intentionally omits the source repository's CNAME file. It does not claim tools.simonwillison.net.
+
+

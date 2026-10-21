@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" role="img" aria-labelledby="title description">
+  <title id="title">First Lift — Blender default cube</title>
+  <desc id="description">A warm orange isometric cube hovers above a blue-grey ground plane, with a dotted path showing its short lift and return.</desc>
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1">
+      <stop stop-color="#15212a"/>
+      <stop offset="1" stop-color="#080b0e"/>
+    </linearGradient>
+    <linearGradient id="top" x2="0.8" y2="1">
+      <stop stop-color="#ffd18d"/>
+      <stop offset="1" stop-color="#d98433"/>
+    </linearGradient>
+    <linearGradient id="left" x2="1" y2="1">
+      <stop stop-color="#d47c37"/>
+      <stop offset="1" stop-color="#9a4d25"/>
+    </linearGradient>
+    <linearGradient id="right" x2="1" y2="1">
+      <stop stop-color="#ef9c48"/>
+      <stop offset="1" stop-color="#bd632e"/>
+    </linearGradient>
+    <radialGradient id="glow">
+      <stop stop-color="#f4aa55" stop-opacity=".35"/>
+      <stop offset="1" stop-color="#f4aa55" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="42" height="24" patternUnits="userSpaceOnUse" patternTransform="skewY(-28)">
+      <path d="M42 0H0V24" fill="none" stroke="#aac2d0" stroke-opacity=".14" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="800" height="450" fill="url(#sky)"/>
+  <circle cx="421" cy="187" r="185" fill="url(#glow)"/>
+  <path d="M0 323 300 224l500 100v126H0Z" fill="#101a20"/>
+  <path d="M0 323 300 224l500 100v126H0Z" fill="url(#grid)" opacity=".9"/>
+  <path d="M405 287c-3-40 3-67 0-103s-4-56 0-82" fill="none" stroke="#e9ac61" stroke-width="2" stroke-dasharray="4 8" opacity=".8"/>
+  <circle cx="405" cy="287" r="4" fill="#e9ac61"/>
+  <circle cx="405" cy="102" r="4" fill="#ffd18d"/>
+  <ellipse cx="405" cy="308" rx="105" ry="30" fill="#050709" opacity=".62"/>
+  <g stroke="#ffd195" stroke-opacity=".72" stroke-width="2" stroke-linejoin="round">
+    <path d="m405 105 91 51-91 52-91-52Z" fill="url(#top)"/>
+    <path d="M314 156v105l91 52V208Z" fill="url(#left)"/>
+    <path d="M496 156v105l-91 52V208Z" fill="url(#right)"/>
+  </g>
+  <path d="m405 105 0 103m-91-52 91 52 91-52" fill="none" stroke="#ffe0ac" stroke-opacity=".45" stroke-width="1.5"/>
+  <g fill="#c4c8c6" font-family="Segoe UI,Arial,sans-serif" font-size="11" letter-spacing="2.5">
+    <text x="45" y="54">FRAME / FIELD</text>
+    <text x="45" y="76" fill="#e4a34f">SAMPLE 03 · OBJECT-ACTION LOOP</text>
+    <text x="45" y="411">Z +</text>
+    <text x="93" y="411" fill="#778691">RISE · RETURN · REPEAT</text>
+  </g>
+  <path d="M45 386h710" stroke="#d6e3e8" stroke-opacity=".25"/>
+</svg>

@@ -1,23 +1,19 @@
 # Frame / Field — Blender Viewer Showcase
 
-A standalone GitHub Pages bundle for the Blender 5.x viewer work in the private [Tushar-sarangi/tools](https://github.com/Tushar-sarangi/tools) repository.
+**Open the live browser viewer:** [tushar-sarangi.github.io/blender-viewer-field-notes](https://tushar-sarangi.github.io/blender-viewer-field-notes/)
 
-## Contents
+Jump straight to the animated default cube: [First Lift](https://tushar-sarangi.github.io/blender-viewer-field-notes/?scene=cube).
 
-- `index.html`: cinematic landing page with two scene cards and an embedded orbitable viewer
-- `blender-viewer.html`: the fork's browser viewer, including direct object-action timeline playback and looping
-- `assets/*.blend`: two editable Blender 5.0 A.N.T. Landscape scenes
-- `assets/*-loop.gif` and `assets/*-poster.png`: motion and still previews
-- `LICENSE`, `NOTICE`, and `blender-viewer.docs.md`: upstream license, attribution, modifications, and viewer limitations
+The landing page embeds the orbitable viewer at figure scale. Choose one of three scenes, then drag to orbit, scroll to zoom, and use the viewer's Play, Loop, and timeline controls.
 
-The page loads its `.blend` files from its own Pages origin. Visitors do not need access to the private source repository. This is a deliberately small public showcase bundle; it does not copy the rest of the `tools` repository. No `CNAME` is included, so it cannot claim the upstream `tools.simonwillison.net` domain.
+## Examples
 
-## Publish with GitHub Pages
+- **Lantern Ridge** — an amber-lit courier crosses an A.N.T. Landscape mountain range. [Open in the live viewer](https://tushar-sarangi.github.io/blender-viewer-field-notes/?scene=lantern) · [Download the editable scene](assets/lantern-ridge.blend)
+- **Paper Moon** — a signal probe moves over a layered dusk landscape. [Open in the live viewer](https://tushar-sarangi.github.io/blender-viewer-field-notes/?scene=moon) · [Download the editable scene](assets/paper-moon-signal.blend)
+- **First Lift** — the Blender default cube rises on Z, returns to its start, and loops with stepped object-action keys. [Open in the live viewer](https://tushar-sarangi.github.io/blender-viewer-field-notes/?scene=cube) · [Download the editable scene](assets/default-cube.blend)
 
-For a GitHub Free account, the Pages source repository must be public. Create a separate public repository for this bundle, upload its contents, then choose **Settings → Pages → Deploy from a branch → main → /(root)**. The generated project URL follows `https://<owner>.github.io/<repository>/`.
+The viewer and scenes are bundled on this Pages origin, so visitors do not need access to the private source repository. See [blender-viewer.docs.md](blender-viewer.docs.md) for supported animation data and limitations.
 
-Public Pages visitors can access the bundled viewer source, Blender scene files, preview GIFs, and posters. Keep the original `tools` repository private.
+## Attribution and license
 
-## Attribution
-
-The source viewer derives from Simon Willison's `simonw/tools`, licensed under Apache License 2.0. The terrain scenes use generated meshes from the official A.N.T. Landscape extension (0.2.0), credited in `NOTICE`. The add-on source is not included.
+The browser viewer derives from Simon Willison's [`simonw/tools`](https://github.com/simonw/tools) and is distributed under Apache License 2.0. The full license text is in [LICENSE](LICENSE); [NOTICE](NOTICE) records attribution and significant changes, including the OC initials in the Blender sample. The terrain meshes were generated with A.N.T. Landscape 0.2.0; its attribution is also in `NOTICE`. The extension source is not included.

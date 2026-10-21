@@ -1,7 +1,7 @@
 <!--
   Modified by OpenAI Codex (OC) on 2026-10-22.
-  Change notice: Added a standalone cinematic landing page, scene switching, and embedded looping viewer.
-  The page bundle contains only the viewer, two example scenes, preview renders, and attribution files.
+  Change notice: Added a figure-sized embedded looping viewer, scene switching, and a third default-cube example.
+  The page bundle contains the viewer, three scenes, preview artwork, and attribution files.
 -->
 <!doctype html>
 <html lang="en">
@@ -9,7 +9,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#10100f">
-  <meta name="description" content="Two miniature Blender landscapes, animated with stepped object-action keys and playable in an orbitable browser viewer.">
+  <meta name="description" content="Three editable Blender examples — two miniature landscapes and the animated default cube — playable in an orbitable browser viewer.">
   <title>Field Notes 01 — Terrain in 24 Steps</title>
   <style>
     :root {
@@ -107,6 +107,7 @@
     .viewer-shell {
       position: relative;
       overflow: hidden;
+      margin: 0;
       border: 1px solid rgba(255,255,255,.13);
       background: #111;
       box-shadow: 0 28px 90px rgba(0,0,0,.38);
@@ -125,6 +126,7 @@
       display: flex;
       gap: .55rem;
       align-items: center;
+      flex-wrap: wrap;
     }
     .scene-button {
       color: var(--muted);
@@ -161,7 +163,7 @@
     .chapter p { max-width: 700px; color: var(--muted); line-height: 1.8; }
     .stories {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 1.1rem;
       padding: 1.2rem 0 5.3rem;
     }
@@ -229,6 +231,22 @@
     footer .foot-row { display: flex; justify-content: space-between; gap: 1.2rem; }
     .source-link { color: var(--ink); text-decoration: none; }
     .license-line { margin-top: .65rem; }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    @media (max-width: 960px) {
+      .stories { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .story:last-child { grid-column: 1 / -1; }
+      .story:last-child .story-visual { aspect-ratio: 16 / 6; }
+    }
     @media (max-width: 720px) {
       .wrap { width: min(100% - 30px, 620px); }
       .masthead { min-height: 62px; font-size: .62rem; }
@@ -242,6 +260,8 @@
       .instructions { text-align: left; }
       .chapter { grid-template-columns: 1fr; gap: .8rem; padding-top: 3rem; }
       .stories { grid-template-columns: 1fr; padding-bottom: 3.8rem; }
+      .story:last-child { grid-column: auto; }
+      .story:last-child .story-visual { aspect-ratio: 16 / 8.5; }
       .method { grid-template-columns: 1fr; margin-bottom: 3.8rem; }
       footer .foot-row { flex-direction: column; }
     }
@@ -256,7 +276,7 @@
     <a class="brand" href="./" aria-label="Field Notes home"><span class="brand-mark">✳</span> Frame / Field</a>
     <nav class="nav" aria-label="Main navigation">
       <a href="#viewer">The viewer</a>
-      <a href="#scenes">Two scenes</a>
+      <a href="#scenes">Three examples</a>
       <a href="#method">The method</a>
     </nav>
   </header>
@@ -266,7 +286,7 @@
       <div>
         <p class="eyebrow">Blender 5.x · Browser study 01</p>
         <h1>Terrain in<br><em>24 steps.</em></h1>
-        <p class="dek">Two small stop-motion fables made from procedural mountains. Orbit the scene, scrub the timeline, or let the loop find its rhythm.</p>
+        <p class="dek">Two stop-motion fables made from procedural mountains, plus the Blender default cube learning its first move. Orbit the scene, scrub the timeline, or let the loop find its rhythm.</p>
       </div>
       <aside class="issue">
         <strong>Field Notes / No. 01</strong>
@@ -282,13 +302,15 @@
         <span id="viewer-label">Now screening <strong id="current-title">Lantern Ridge</strong></span>
         <span class="live">● Live browser viewer</span>
       </div>
-      <div class="viewer-shell">
+      <figure class="viewer-shell" aria-label="Live orbitable Blender scene">
         <iframe id="browser-preview" title="Orbitable Blender scene with looping animation timeline" allow="fullscreen"></iframe>
-      </div>
+        <figcaption class="sr-only">Live Blender scene preview. Drag to orbit, scroll to zoom, and use the viewer controls to play or scrub the animation.</figcaption>
+      </figure>
       <div class="viewer-bottomline">
         <div class="scene-switcher" role="group" aria-label="Choose a scene">
           <button class="scene-button" type="button" data-scene="lantern" aria-pressed="true">01 · Lantern Ridge</button>
           <button class="scene-button" type="button" data-scene="moon" aria-pressed="false">02 · Paper Moon</button>
+          <button class="scene-button" type="button" data-scene="cube" aria-pressed="false">03 · First Lift</button>
         </div>
         <span class="instructions">Drag to orbit · scroll to zoom · use Play / Loop below</span>
       </div>
@@ -297,8 +319,8 @@
     <section class="chapter" id="scenes">
       <div class="chapter-index">01 / The scenes</div>
       <div>
-        <h2>Two walks through the blue hour.</h2>
-        <p>Each scene is an editable <code>.blend</code> file. The preview uses the fork’s browser viewer: the A.N.T. Landscape terrain stays orbitable while the courier and signal probe move on stepped object-action keys.</p>
+        <h2>Two walks through the blue hour, and one first lift.</h2>
+        <p>Each example is an editable <code>.blend</code> file. The preview uses the fork’s browser viewer: A.N.T. Landscape terrain stays orbitable while the courier, signal probe, and default cube move on object-action keys.</p>
       </div>
     </section>
 
@@ -328,6 +350,20 @@
           <button class="button primary" type="button" data-load-scene="moon">Load in viewer ↗</button>
           <a class="button" href="assets/paper-moon-signal.blend" download>Download .blend ↓</a>
           <a class="button" href="assets/paper-moon-signal-poster.png" target="_blank" rel="noopener">Still frame ↗</a>
+        </div>
+      </article>
+
+      <article class="story">
+        <div class="story-visual">
+          <img src="assets/default-cube-poster.svg" alt="A glowing orange Blender default cube lifted above its starting point" loading="lazy" width="800" height="450">
+        </div>
+        <div class="story-meta"><span>Factory-startup study</span><span>Looping object-action keys</span></div>
+        <h3>First Lift</h3>
+        <p class="story-copy">The familiar default cube rises along Z, returns to the origin, and repeats its small stop-motion gesture.</p>
+        <div class="story-actions">
+          <button class="button primary" type="button" data-load-scene="cube">Load in viewer ↗</button>
+          <a class="button" href="assets/default-cube.blend" download>Download .blend ↓</a>
+          <a class="button" href="assets/default-cube-poster.svg" target="_blank" rel="noopener">Still frame ↗</a>
         </div>
       </article>
     </section>
@@ -360,7 +396,8 @@
   <script>
     const scenes = {
       lantern: { title: "Lantern Ridge", file: "assets/lantern-ridge.blend" },
-      moon: { title: "Paper Moon", file: "assets/paper-moon-signal.blend" }
+      moon: { title: "Paper Moon", file: "assets/paper-moon-signal.blend" },
+      cube: { title: "First Lift", file: "assets/default-cube.blend" }
     };
     const iframe = document.getElementById("browser-preview");
     const title = document.getElementById("current-title");
@@ -395,3 +432,4 @@
   </script>
 </body>
 </html>
+

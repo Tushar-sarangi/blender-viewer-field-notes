@@ -1,6 +1,6 @@
 <!--
   Modified by OpenAI Codex (OC) on 2026-10-21.
-  Change notice: Added Blender 5.x object-action playback and looping timeline controls.
+  Change notice: Added Blender 5.x object-action playback, looping timeline controls, and URL camera presets.
   Upstream attribution and licensing details are recorded in NOTICE; see LICENSE for the full Apache-2.0 text.
 -->
 <!doctype html>
@@ -2201,6 +2201,27 @@ function useSavedCamera(blend, objects) {
   return true;
 }
 
+function useUrlCameraPreset() {
+  const params = new URL(location.href).searchParams;
+  const readVector = key => {
+    const values = params.get(key)?.split(",").map(Number);
+    return values?.length === 3 && values.every(Number.isFinite) ? values : null;
+  };
+  const position = readVector("cameraPosition");
+  const target = readVector("cameraTarget");
+  const fov = Number(params.get("cameraFov"));
+  if (!position || !target || !Number.isFinite(fov) || fov <= 0 || fov >= 180) return false;
+
+  camera = new THREE.PerspectiveCamera(fov, view.clientWidth / Math.max(view.clientHeight, 1), 0.01, 100000);
+  camera.up.set(0, 0, 1);
+  camera.position.fromArray(position);
+  controls.object = camera;
+  controls.target.fromArray(target);
+  camera.lookAt(controls.target);
+  controls.update();
+  return true;
+}
+
 function modelBounds() {
   modelRoot.updateMatrixWorld(true);
   const bounds = [];
@@ -2404,7 +2425,11 @@ async function loadBlend(rawURL) {
 
     empty.style.display = "none";
     fitCamera();
-    try { useSavedCamera(blend, objects); } catch (error) { console.warn("Saved camera unavailable", error); }
+    let cameraSource = "auto-fit";
+    try {
+      if (useSavedCamera(blend, objects)) cameraSource = "Blender scene camera";
+    } catch (error) { console.warn("Saved camera unavailable", error); }
+    if (useUrlCameraPreset()) cameraSource = "page camera preset";
     configureTimeline();
 
     const version = blend.header?.versionString
@@ -2414,6 +2439,7 @@ async function loadBlend(rawURL) {
     setStatus(
       `Loaded Blender ${version} · ${formatBytes(bytes.byteLength)}\n` +
       `${renderedObjects} meshes · ${renderedCurves} curves · ${renderedText} text · ${vertices.toLocaleString()} vertices · ${Math.round(triangles).toLocaleString()} triangles · ${materials.length} materials · ${lightCount} lights` +
+      `\nCamera: ${cameraSource}` +
       (timeline && timeline.curvesByObject.size ? ` · ${timeline.curvesByObject.size} animated objects` : "") +
       (skippedCurves ? `\n${skippedCurves} unsupported curve/text objects` : "") +
       `\nPreview: approximate materials and text; unapplied modifiers are omitted.` +

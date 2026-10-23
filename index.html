@@ -1,6 +1,6 @@
 <!--
   Modified by OpenAI Codex (OC) on 2026-10-22.
-  Change notice: Added a figure-sized embedded looping viewer, scene switching, and a third default-cube example.
+  Change notice: Added the First Lift camera preset used to match the browser view to its looping thumbnail.
   The page bundle contains the viewer, three scenes, preview artwork, and attribution files.
 -->
 <!doctype html>
@@ -397,7 +397,11 @@
     const scenes = {
       lantern: { title: "Lantern Ridge", file: "assets/lantern-ridge.blend" },
       moon: { title: "Paper Moon", file: "assets/paper-moon-signal.blend" },
-      cube: { title: "First Lift", file: "assets/default-cube.blend?v=lift-camera-v3" }
+      cube: {
+        title: "First Lift",
+        file: "assets/default-cube.blend?v=lift-camera-v3",
+        camera: { position: [7.19132, -6.76808, 6.3454], target: [0, 0, 0], fov: 45.7 }
+      }
     };
     const iframe = document.getElementById("browser-preview");
     const title = document.getElementById("current-title");
@@ -408,6 +412,11 @@
       const viewerUrl = new URL("blender-viewer.html", location.href);
       viewerUrl.searchParams.set("url", modelUrl.href);
       viewerUrl.searchParams.set("autoplay", "1");
+      if (scene.camera) {
+        viewerUrl.searchParams.set("cameraPosition", scene.camera.position.join(","));
+        viewerUrl.searchParams.set("cameraTarget", scene.camera.target.join(","));
+        viewerUrl.searchParams.set("cameraFov", String(scene.camera.fov));
+      }
       iframe.src = viewerUrl.href;
       title.textContent = scene.title;
       document.querySelectorAll("[data-scene]").forEach(button => {

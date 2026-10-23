@@ -27,6 +27,7 @@ Additional standalone showcase bundle:
 - OpenAI Codex (OC), 2026-10-22: created index.html as a cinematic landing page with a figure-sized embedded viewer, scene switching, and same-origin Pages asset loading. The bundle includes the viewer, Lantern Ridge and Paper Moon landscape scenes with loop previews, and the animated Blender default-cube sample with a poster.
 - OpenAI Codex (OC), 2026-10-22: added the First Lift landing-page scene route and README links to the live viewer and its scene examples.
 - OpenAI Codex (OC), 2026-10-22: reframed the First Lift camera around the cube's full vertical animation and generated a matching looping GIF and still poster from the updated .blend file.
+- OpenAI Codex (OC), 2026-10-23: added a First Lift-only browser camera preset from the authored Blender camera so the live scene matches the thumbnail framing; Lantern Ridge and Paper Moon remain unchanged.
 - The showcase bundle intentionally omits the source repository's CNAME file. It does not claim tools.simonwillison.net.
 
 

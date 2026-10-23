@@ -1,6 +1,6 @@
 <!--
   Modified by OpenAI Codex (OC) on 2026-10-22.
-  Change notice: Added the First Lift camera preset used to match the browser view to its looping thumbnail.
+  Change notice: Added a figure-sized embedded looping viewer, scene switching, and a third default-cube example.
   The page bundle contains the viewer, three scenes, preview artwork, and attribution files.
 -->
 <!doctype html>
@@ -276,7 +276,7 @@
     <a class="brand" href="./" aria-label="Field Notes home"><span class="brand-mark">✳</span> Frame / Field</a>
     <nav class="nav" aria-label="Main navigation">
       <a href="#viewer">The viewer</a>
-      <a href="#scenes">Three examples</a>
+      <a href="#scenes">Five examples</a>
       <a href="#method">The method</a>
     </nav>
   </header>
@@ -285,15 +285,15 @@
     <section class="hero">
       <div>
         <p class="eyebrow">Blender 5.x · Browser study 01</p>
-        <h1>Terrain in<br><em>24 steps.</em></h1>
-        <p class="dek">Two stop-motion fables made from procedural mountains, plus the Blender default cube learning its first move. Orbit the scene, scrub the timeline, or let the loop find its rhythm.</p>
+        <h1>Motion in<br><em>the field.</em></h1>
+        <p class="dek">Three stop-motion fables, a constraint-driven orbit, and a small physics-and-rig study. Orbit the scene, scrub Blender-evaluated frames, or let the loop find its rhythm.</p>
       </div>
       <aside class="issue">
         <strong>Field Notes / No. 01</strong>
-        A miniature landscape series<br>
-        73 timeline frames · 24 motion steps<br>
-        8 poses per second · 3-second loop<br>
-        Object-action keys · no NLA track
+        Five browser-ready Blender studies<br>
+        Direct object keys and evaluated caches<br>
+        Constraints · armature pose · NLA<br>
+        Animated modifiers · rigid-body physics
       </aside>
     </section>
 
@@ -309,8 +309,10 @@
       <div class="viewer-bottomline">
         <div class="scene-switcher" role="group" aria-label="Choose a scene">
           <button class="scene-button" type="button" data-scene="lantern" aria-pressed="true">01 · Lantern Ridge</button>
-          <button class="scene-button" type="button" data-scene="moon" aria-pressed="false">02 · Paper Moon</button>
-          <button class="scene-button" type="button" data-scene="cube" aria-pressed="false">03 · First Lift</button>
+          <button class="scene-button" type="button" data-scene="constraint" aria-pressed="false">02 · Constraint Arc</button>
+          <button class="scene-button" type="button" data-scene="mechanics" aria-pressed="false">03 · Motion Mechanics</button>
+          <button class="scene-button" type="button" data-scene="moon" aria-pressed="false">04 · Paper Moon</button>
+          <button class="scene-button" type="button" data-scene="cube" aria-pressed="false">05 · First Lift</button>
         </div>
         <span class="instructions">Drag to orbit · scroll to zoom · use Play / Loop below</span>
       </div>
@@ -319,8 +321,8 @@
     <section class="chapter" id="scenes">
       <div class="chapter-index">01 / The scenes</div>
       <div>
-        <h2>Two walks through the blue hour, and one first lift.</h2>
-        <p>Each example is an editable <code>.blend</code> file. The preview uses the fork’s browser viewer: A.N.T. Landscape terrain stays orbitable while the courier, signal probe, and default cube move on object-action keys.</p>
+        <h2>Five small scenes, two ways to move.</h2>
+        <p>Each example is an editable <code>.blend</code> file. Direct object keys play natively; the two advanced studies also ship a sampled cache of Blender-evaluated geometry, so constraints, armature deformation, NLA, animated modifiers, and rigid bodies appear in the browser preview.</p>
       </div>
     </section>
 
@@ -336,6 +338,34 @@
           <button class="button primary" type="button" data-load-scene="lantern">Load in viewer ↗</button>
           <a class="button" href="assets/lantern-ridge.blend" download>Download .blend ↓</a>
           <a class="button" href="assets/lantern-ridge-poster.png" target="_blank" rel="noopener">Still frame ↗</a>
+        </div>
+      </article>
+
+      <article class="story">
+        <div class="story-visual">
+          <img src="assets/constraint-arc-poster.png" alt="A cyan signal orb follows a brass circular path around a dark miniature stage" loading="lazy" width="800" height="450">
+        </div>
+        <div class="story-meta"><span>Constraint study</span><span>Follow Path + Copy Location</span></div>
+        <h3>Constraint Arc</h3>
+        <p class="story-copy">A signal follows a curve while a second beacon copies its location. The browser replays sampled evaluated frames from Blender.</p>
+        <div class="story-actions">
+          <button class="button primary" type="button" data-load-scene="constraint">Load in viewer ↗</button>
+          <a class="button" href="assets/constraint-arc.blend" download>Download .blend ↓</a>
+          <a class="button" href="assets/constraint-arc-poster.png" target="_blank" rel="noopener">Still frame ↗</a>
+        </div>
+      </article>
+
+      <article class="story">
+        <div class="story-visual">
+          <img src="assets/motion-mechanics-poster.png" alt="A teal paper sail, violet twisting column, and colored rigid-body dominoes on a dark stage" loading="lazy" width="800" height="450">
+        </div>
+        <div class="story-meta"><span>Evaluation study</span><span>Rig + NLA + modifier + physics</span></div>
+        <h3>Motion Mechanics</h3>
+        <p class="story-copy">A pose-driven sail repeats in NLA beside an animated twist modifier, a falling domino chain, and a bouncing marble.</p>
+        <div class="story-actions">
+          <button class="button primary" type="button" data-load-scene="mechanics">Load in viewer ↗</button>
+          <a class="button" href="assets/motion-mechanics.blend" download>Download .blend ↓</a>
+          <a class="button" href="assets/motion-mechanics-poster.png" target="_blank" rel="noopener">Still frame ↗</a>
         </div>
       </article>
 
@@ -371,15 +401,15 @@
     <section class="chapter" id="method">
       <div class="chapter-index">02 / The method</div>
       <div>
-        <h2>Small moves. Clear keys.</h2>
-        <p>The timeline reads direct object location, rotation, and scale action curves. Playback starts automatically in this showcase; the Loop checkbox and frame scrubber stay available in the embedded viewer.</p>
+        <h2>Blender solves. The browser plays.</h2>
+        <p>The timeline reads direct object transform keys or a sidecar cache sampled from Blender’s evaluated scene. Playback starts automatically; the Loop checkbox and frame scrubber stay available in the embedded viewer.</p>
       </div>
     </section>
 
     <section class="method" aria-label="Animation details">
-      <article><span class="number">01</span><h3>Made in Blender</h3><p>Blender 5.0 scenes with procedural terrain generated by the A.N.T. Landscape extension.</p></article>
-      <article><span class="number">02</span><h3>Stepped animation</h3><p>Twenty-four motion steps span a 73-frame timeline at 24 fps, holding each pose for three frames. The final keyed pose meets the first without an NLA strip.</p></article>
-      <article><span class="number">03</span><h3>Orbit in the browser</h3><p>Drag to inspect the mountain from any angle. Play, pause, loop, and scrub the animated object in place.</p></article>
+      <article><span class="number">01</span><h3>Make the scene</h3><p>Editable Blender 5.x files keep their constraints, armatures, NLA strips, modifiers, and rigid-body setup.</p></article>
+      <article><span class="number">02</span><h3>Sample evaluation</h3><p><code>blender-viewer-bake.py</code> records evaluated mesh geometry and world transforms into a compact <code>.bva.gz</code> sidecar.</p></article>
+      <article><span class="number">03</span><h3>Orbit and scrub</h3><p>The browser displays each sampled frame with Play, Loop, and frame controls. Blender—not JavaScript—runs the solvers.</p></article>
     </section>
   </main>
 
@@ -387,7 +417,7 @@
     <div class="wrap">
       <div class="foot-row">
         <span>Frame / Field — a Blender viewer field note.</span>
-        <a class="source-link" href="https://github.com/Tushar-sarangi/tools/tree/feature/blender-5-timeline-playback" target="_blank" rel="noopener">Viewer source repository (private) ↗</a>
+        <a class="source-link" href="https://github.com/Tushar-sarangi/tools/tree/feature/evaluated-animation-cache" target="_blank" rel="noopener">Viewer source repository (private) ↗</a>
       </div>
       <p class="license-line">Viewer source is derived from <a class="source-link" href="https://github.com/simonw/tools" target="_blank" rel="noopener">simonw/tools</a> and distributed under Apache License 2.0. The terrain was generated with A.N.T. Landscape 0.2.0 by Jimmy Hazevoet and Blender Foundation contributors (GPL-2.0-or-later extension; not bundled). Full attribution and terms are in <a class="source-link" href="NOTICE">NOTICE</a> and <a class="source-link" href="LICENSE">LICENSE</a>.</p>
     </div>
@@ -400,8 +430,14 @@
       cube: {
         title: "First Lift",
         file: "assets/default-cube.blend?v=lift-camera-v3",
-        camera: { position: [7.19132, -6.76808, 6.3454], target: [-0.482629, 0.454222, 1.174815], fov: 45.74733 }
-      }
+        camera: {
+          position: [7.19132, -6.76808, 6.3454],
+          target: [-0.482629, 0.454222, 1.174815],
+          fov: 45.74733
+        }
+      },
+      constraint: { title: "Constraint Arc", file: "assets/constraint-arc.blend" },
+      mechanics: { title: "Motion Mechanics", file: "assets/motion-mechanics.blend" }
     };
     const iframe = document.getElementById("browser-preview");
     const title = document.getElementById("current-title");
@@ -410,6 +446,7 @@
       const scene = scenes[id] || scenes.lantern;
       const modelUrl = new URL(scene.file, location.href);
       const viewerUrl = new URL("blender-viewer.html", location.href);
+      viewerUrl.searchParams.set("v", "evaluated-cache-v1");
       viewerUrl.searchParams.set("url", modelUrl.href);
       viewerUrl.searchParams.set("autoplay", "1");
       if (scene.camera) {
@@ -441,5 +478,4 @@
   </script>
 </body>
 </html>
-
 

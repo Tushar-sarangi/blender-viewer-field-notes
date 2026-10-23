@@ -28,7 +28,9 @@ Additional standalone showcase bundle:
 - OpenAI Codex (OC), 2026-10-22: added the First Lift landing-page scene route and README links to the live viewer and its scene examples.
 - OpenAI Codex (OC), 2026-10-22: reframed the First Lift camera around the cube's full vertical animation and generated a matching looping GIF and still poster from the updated .blend file.
 - OpenAI Codex (OC), 2026-10-23: added a First Lift-only browser camera preset derived from the authored Blender camera position, focus point, and focal length so the live scene matches the thumbnail framing; Lantern Ridge and Paper Moon remain unchanged.
+- OpenAI Codex (OC), 2026-10-23: added Blender-evaluated BVA sidecar playback, automatic rigid-body cache baking, and two generic examples. Constraint Arc demonstrates Follow Path and Copy Location. Motion Mechanics demonstrates armature pose deformation in NLA, an animated Simple Deform modifier, and a rigid-body domino and marble study. Each new .blend records the OC example credit as scene metadata.
+- The Blender samples are original generic examples generated for this showcase. They do not contain the user's proprietary tank-rig WIP assets.
+- The showcase bundle includes blender-viewer-bake.py and examples/build_evaluated_demos.py to document and reproduce the evaluated-cache workflow.
 - The showcase bundle intentionally omits the source repository's CNAME file. It does not claim tools.simonwillison.net.
-
 
 

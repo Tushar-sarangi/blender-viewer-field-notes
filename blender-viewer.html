@@ -1,6 +1,6 @@
 <!--
   Modified by OpenAI Codex (OC) on 2026-10-21.
-  Change notice: Added Blender 5.x object-action playback, looping timeline controls, and URL camera presets.
+  Change notice: Added Blender 5.x object-action playback, looping controls, and optional Blender-evaluated mesh animation caches.
   Upstream attribution and licensing details are recorded in NOTICE; see LICENSE for the full Apache-2.0 text.
 -->
 <!doctype html>
@@ -322,6 +322,10 @@ let loading = false;
 let timeline = null;
 let timelinePlaying = false;
 let timelineBindings = [];
+let bakedAnimation = null;
+let bakedBindings = [];
+let retiredGeometries = new Set();
+let retiredMaterials = new Set();
 let previousAnimationTime = 0;
 
 function applyLighting() {
@@ -376,16 +380,24 @@ function clearModel() {
   timeline = null;
   timelinePlaying = false;
   timelineBindings = [];
+  bakedAnimation = null;
+  bakedBindings = [];
   previousAnimationTime = 0;
   $("#timeline").hidden = true;
+  const geometries = new Set(retiredGeometries);
+  const materials = new Set(retiredMaterials);
   while (modelRoot.children.length) {
     const obj = modelRoot.children.pop();
     obj.traverse?.((child) => {
-      child.geometry?.dispose?.();
-      if (Array.isArray(child.material)) child.material.forEach(m => m.dispose?.());
-      else child.material?.dispose?.();
+      if (child.geometry) geometries.add(child.geometry);
+      if (Array.isArray(child.material)) child.material.forEach(m => { if (m) materials.add(m); });
+      else if (child.material) materials.add(child.material);
     });
   }
+  for (const geometry of geometries) geometry.dispose?.();
+  for (const material of materials) material.dispose?.();
+  retiredGeometries.clear();
+  retiredMaterials.clear();
   fileLights.clear();
   fileLook?.environmentTarget?.dispose();
   fileLook = null;
@@ -2124,6 +2136,7 @@ function applyTimelineFrame(frame) {
       entry.object.target.position.copy(position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(rotation));
     }
   }
+  applyBakedFrame(timeline.frame);
   updateTimelineUI();
 }
 
@@ -2135,6 +2148,150 @@ function bindTimelineObject(object, sourceBase, staticWorld) {
     staticSourceWorld: state.staticWorld.clone(),
     staticWorld: new THREE.Matrix4().fromArray(staticWorld)
   });
+}
+
+async function fetchBakedAnimation(blendURL) {
+  const pageURL = new URL(location.href);
+  const explicitURL = pageURL.searchParams.get("bake");
+  let bakeURL;
+  if (explicitURL) {
+    bakeURL = normalizeURL(explicitURL);
+  } else {
+    const assetURL = new URL(blendURL);
+    assetURL.pathname += ".bva.gz";
+    assetURL.search = "";
+    assetURL.hash = "";
+    bakeURL = assetURL.href;
+  }
+
+  const response = await fetch(bakeURL);
+  if (response.status === 404 && !explicitURL) return null;
+  if (!response.ok) throw new Error(`Animation cache HTTP ${response.status}`);
+
+  let bytes = new Uint8Array(await response.arrayBuffer());
+  if (bytes[0] === 0x1f && bytes[1] === 0x8b) {
+    if (typeof DecompressionStream !== "function") {
+      throw new Error("This browser cannot decompress the Blender animation cache");
+    }
+    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+    bytes = new Uint8Array(await new Response(stream).arrayBuffer());
+  }
+  if (bytes.length < 8 || String.fromCharCode(...bytes.subarray(0, 4)) !== "BVA1") {
+    throw new Error("Unrecognized Blender animation cache header");
+  }
+
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const manifestLength = view.getUint32(4, true);
+  const manifestEnd = 8 + manifestLength;
+  if (manifestEnd > bytes.length) throw new Error("Truncated Blender animation cache manifest");
+  const manifest = JSON.parse(new TextDecoder().decode(bytes.subarray(8, manifestEnd)));
+  if (manifest.format !== "blender-viewer-evaluated-animation" || manifest.version !== 1) {
+    throw new Error("Unsupported Blender animation cache version");
+  }
+  const dataOffset = Math.ceil(manifestEnd / 4) * 4;
+  if (dataOffset > bytes.length) throw new Error("Truncated Blender animation cache geometry data");
+  return { manifest, bytes, dataOffset, geometryCache: new Map(), boundObjects: 0 };
+}
+
+function bakedGeometry(geometryId) {
+  const cached = bakedAnimation.geometryCache.get(geometryId);
+  if (cached) return cached;
+  const record = bakedAnimation.manifest.geometries[geometryId];
+  if (!record) throw new Error(`Animation cache is missing geometry ${geometryId}`);
+  const base = bakedAnimation.bytes.byteOffset + bakedAnimation.dataOffset;
+  const float32 = (offset, count) => new Float32Array(bakedAnimation.bytes.buffer, base + offset, count);
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.BufferAttribute(float32(record.positionOffset, record.vertexCount * 3), 3));
+  geometry.setAttribute("normal", new THREE.BufferAttribute(float32(record.normalOffset, record.vertexCount * 3), 3));
+  if (record.uvOffset !== null && record.uvOffset !== undefined) {
+    geometry.setAttribute("uv", new THREE.BufferAttribute(float32(record.uvOffset, record.vertexCount * 2), 2));
+  }
+  for (const group of record.groups || []) geometry.addGroup(group.start, group.count, group.materialIndex);
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+  bakedAnimation.geometryCache.set(geometryId, geometry);
+  return geometry;
+}
+
+function attachBakedAnimation(materialInfo) {
+  if (!bakedAnimation) return 0;
+  const targets = new Map();
+  modelRoot.traverse(object => {
+    if (!object.name) return;
+    if (!targets.has(object.name)) targets.set(object.name, []);
+    targets.get(object.name).push(object);
+  });
+
+  let bound = 0;
+  for (const cachedObject of bakedAnimation.manifest.objects || []) {
+    const targetList = targets.get(cachedObject.name) || [];
+    const first = cachedObject.frames?.[0];
+    if (!first) continue;
+    const mats = cachedObject.materials?.length
+      ? cachedObject.materials.map(name => materialInfo(name || null).material)
+      : [materialInfo(null).material];
+    const geometryRecord = bakedAnimation.manifest.geometries[first.geometry];
+    const largestSlot = Math.max(0, ...(geometryRecord?.groups || []).map(group => group.materialIndex));
+    while (mats.length <= largestSlot) mats.push(materialInfo(null).material);
+    for (const target of targetList) {
+      let mesh = target;
+      if (!target.isMesh) {
+        const oldMeshes = [];
+        target.traverse(child => { if (child.isMesh) oldMeshes.push(child); });
+        if (!oldMeshes.length) continue;
+        for (const oldMesh of oldMeshes) {
+          retiredGeometries.add(oldMesh.geometry);
+          if (Array.isArray(oldMesh.material)) oldMesh.material.forEach(m => retiredMaterials.add(m));
+          else if (oldMesh.material) retiredMaterials.add(oldMesh.material);
+        }
+        while (target.children.length) target.remove(target.children[target.children.length - 1]);
+        const geometry = bakedGeometry(first.geometry);
+        mesh = new THREE.Mesh(geometry, geometry.groups.length ? mats : mats[0]);
+        mesh.name = `${target.name} evaluated mesh`;
+        target.add(mesh);
+      } else {
+        retiredGeometries.add(mesh.geometry);
+        if (Array.isArray(mesh.material)) mesh.material.forEach(m => retiredMaterials.add(m));
+        else if (mesh.material) retiredMaterials.add(mesh.material);
+        mesh.material = bakedGeometry(first.geometry).groups.length ? mats : mats[0];
+        mesh.geometry = bakedGeometry(first.geometry);
+      }
+      target.matrix.fromArray(first.matrix);
+      target.matrixAutoUpdate = false;
+      target.matrixWorldNeedsUpdate = true;
+      bakedBindings.push({ target, mesh, cachedObject, geometryId: first.geometry });
+      bound++;
+    }
+  }
+  bakedAnimation.boundObjects = bound;
+  return bound;
+}
+
+function applyBakedFrame(frame) {
+  if (!bakedAnimation) return;
+  const manifest = bakedAnimation.manifest;
+  for (const binding of bakedBindings) {
+    const samples = binding.cachedObject.frames;
+    if (!samples?.length) continue;
+    let lo = 0, hi = samples.length - 1;
+    while (lo < hi) {
+      const mid = Math.floor((lo + hi) / 2);
+      if (samples[mid].frame < frame) lo = mid + 1;
+      else hi = mid;
+    }
+    const right = samples[lo];
+    const left = samples[Math.max(0, lo - (right.frame > frame ? 1 : 0))];
+    const sample = Math.abs(frame - left.frame) <= Math.abs(right.frame - frame) ? left : right;
+    if (binding.geometryId !== sample.geometry) {
+      retiredGeometries.add(binding.mesh.geometry);
+      binding.mesh.geometry = bakedGeometry(sample.geometry);
+      binding.geometryId = sample.geometry;
+    }
+    binding.target.matrix.fromArray(sample.matrix);
+    binding.target.matrixAutoUpdate = false;
+    binding.target.matrixWorldNeedsUpdate = true;
+  }
+  modelRoot.updateMatrixWorld(true);
 }
 
 function updateTimelineUI() {
@@ -2149,12 +2306,12 @@ function updateTimelineUI() {
 function configureTimeline() {
   const panel = $("#timeline");
   timelinePlaying = false;
-  panel.hidden = !timeline || timeline.curvesByObject.size === 0;
+  panel.hidden = !timeline || (!bakedAnimation && timeline.curvesByObject.size === 0);
   if (!timeline || panel.hidden) return;
   const input = $("#frame");
   input.min = String(timeline.frameStart);
   input.max = String(timeline.frameEnd);
-  input.step = "0.1";
+  input.step = String(bakedAnimation?.manifest.frameStep || 0.1);
   $("#loop").checked = true;
   applyTimelineFrame(timeline.frameCurrent);
 }
@@ -2197,27 +2354,6 @@ function useSavedCamera(blend, objects) {
   const distance = Math.max(1, camera.position.length());
   controls.object = camera;
   controls.target.copy(camera.position).addScaledVector(forward, distance);
-  controls.update();
-  return true;
-}
-
-function useUrlCameraPreset() {
-  const params = new URL(location.href).searchParams;
-  const readVector = key => {
-    const values = params.get(key)?.split(",").map(Number);
-    return values?.length === 3 && values.every(Number.isFinite) ? values : null;
-  };
-  const position = readVector("cameraPosition");
-  const target = readVector("cameraTarget");
-  const fov = Number(params.get("cameraFov"));
-  if (!position || !target || !Number.isFinite(fov) || fov <= 0 || fov >= 180) return false;
-
-  camera = new THREE.PerspectiveCamera(fov, view.clientWidth / Math.max(view.clientHeight, 1), 0.01, 100000);
-  camera.up.set(0, 0, 1);
-  camera.position.fromArray(position);
-  controls.object = camera;
-  controls.target.fromArray(target);
-  camera.lookAt(controls.target);
   controls.update();
   return true;
 }
@@ -2292,6 +2428,12 @@ async function loadBlend(rawURL) {
 
     setStatus(`Fetching…${displayNormalized}`);
 
+    let bakeWarning = "";
+    const bakedPromise = fetchBakedAnimation(normalized).catch(error => {
+      bakeWarning = `Animation cache was not loaded: ${error?.message || error}`;
+      console.warn(bakeWarning, error);
+      return null;
+    });
     const response = await fetch(normalized);
     if (!response.ok) throw new Error(`HTTP ${response.status} ${response.statusText}`);
 
@@ -2311,6 +2453,7 @@ async function loadBlend(rawURL) {
     const materials = extractMaterials(blend);
     const curves = extractCurves(blend);
     readNodeSettings(blend, materials);
+    const loadedBake = await bakedPromise;
 
     const meshByName = new Map(meshes.map(m => [m.name, m]));
     const materialByName = new Map(materials.map(m => [m.name, m]));
@@ -2321,8 +2464,27 @@ async function loadBlend(rawURL) {
     };
 
     clearModel();
+    bakedAnimation = loadedBake;
     try { timeline = extractTimeline(blend, objects); }
     catch (error) { console.warn("Animation data unavailable", error); timeline = null; }
+    if (bakedAnimation) {
+      const bakedScene = bakedAnimation.manifest;
+      if (!timeline) {
+        timeline = {
+          frameStart: bakedScene.frameStart,
+          frameEnd: bakedScene.frameEnd,
+          frameCurrent: bakedScene.frameCurrent,
+          fps: bakedScene.fps,
+          objectStates: new Map(),
+          curvesByObject: new Map()
+        };
+      } else {
+        timeline.frameStart = bakedScene.frameStart;
+        timeline.frameEnd = bakedScene.frameEnd;
+        timeline.frameCurrent = bakedScene.frameCurrent;
+        timeline.fps = bakedScene.fps;
+      }
+    }
 
     let renderedObjects = 0;
     let triangles = 0;
@@ -2408,6 +2570,8 @@ async function loadBlend(rawURL) {
       bindTimelineObject(group, obj.sourceBase, obj.worldMatrix);
     }
 
+    const bakedObjectCount = attachBakedAnimation(materialInfo);
+
     if (!renderedObjects && !renderedCurves && !renderedText) {
       throw new Error(`Parsed successfully, but found no renderable mesh geometry (${meshes.length} mesh datablocks, ${objects.length} objects).`);
     }
@@ -2425,12 +2589,14 @@ async function loadBlend(rawURL) {
 
     empty.style.display = "none";
     fitCamera();
-    let cameraSource = "auto-fit";
-    try {
-      if (useSavedCamera(blend, objects)) cameraSource = "Blender scene camera";
-    } catch (error) { console.warn("Saved camera unavailable", error); }
-    if (useUrlCameraPreset()) cameraSource = "page camera preset";
+    try { useSavedCamera(blend, objects); } catch (error) { console.warn("Saved camera unavailable", error); }
     configureTimeline();
+
+    if (timeline && new URL(location.href).searchParams.get("autoplay") === "1") {
+      timelinePlaying = true;
+      previousAnimationTime = 0;
+      updateTimelineUI();
+    }
 
     const version = blend.header?.versionString
       ? `${blend.header.versionString.slice(0,2)}.${blend.header.versionString.slice(2)}`
@@ -2439,11 +2605,14 @@ async function loadBlend(rawURL) {
     setStatus(
       `Loaded Blender ${version} · ${formatBytes(bytes.byteLength)}\n` +
       `${renderedObjects} meshes · ${renderedCurves} curves · ${renderedText} text · ${vertices.toLocaleString()} vertices · ${Math.round(triangles).toLocaleString()} triangles · ${materials.length} materials · ${lightCount} lights` +
-      `\nCamera: ${cameraSource}` +
       (timeline && timeline.curvesByObject.size ? ` · ${timeline.curvesByObject.size} animated objects` : "") +
+      (bakedAnimation ? ` · evaluated bake on ${bakedObjectCount} objects` : "") +
       (skippedCurves ? `\n${skippedCurves} unsupported curve/text objects` : "") +
-      `\nPreview: approximate materials and text; unapplied modifiers are omitted.` +
-      (timeline ? ` Object location/rotation/scale keyframes are supported; rig, shape-key, modifier, driver and NLA evaluation are not.` : "") +
+      (bakedAnimation
+        ? `\nBlender-evaluated frames include baked constraints, rigs, NLA, modifiers and simulations; the browser plays the cache without running those solvers.`
+        : `\nPreview: approximate materials and text; unapplied modifiers are omitted.` +
+          (timeline ? ` Object location/rotation/scale keyframes are supported; rig, shape-key, modifier, driver and NLA evaluation are not.` : "")) +
+      (bakeWarning ? `\n${bakeWarning}` : "") +
       (normalized !== rawURL.trim() ? `\nGitHub URL resolved through jsDelivr` : "")
     );
   } catch (err) {
@@ -2546,18 +2715,10 @@ $("#reset").addEventListener("click", () => {
   history.replaceState(null, "", share);
 });
 
-const initialParams = new URL(location.href).searchParams;
-const initial = initialParams.get("url");
-const autoplayInitial = initialParams.get("autoplay") === "1";
+const initial = new URL(location.href).searchParams.get("url");
 if (initial) {
   urlInput.value = initial;
-  loadBlend(initial).then(() => {
-    if (autoplayInitial && timeline) {
-      timelinePlaying = true;
-      previousAnimationTime = 0;
-      updateTimelineUI();
-    }
-  });
+  loadBlend(initial);
 }
 </script>
 <script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a38a2295493debe3',t:'MTc4ODk5ODI0NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>

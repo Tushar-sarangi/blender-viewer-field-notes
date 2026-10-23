@@ -1,24 +1,35 @@
 # Frame / Field — Blender Viewer Showcase
 
-**Open the live browser viewer:** [tushar-sarangi.github.io/blender-viewer-field-notes](https://tushar-sarangi.github.io/blender-viewer-field-notes/?v=lift-camera-v3)
+**Open the live orbitable viewer:** [Frame / Field](https://tushar-sarangi.github.io/blender-viewer-field-notes/?v=evaluated-cache-v1)
 
-Jump straight to the animated default cube: [First Lift](https://tushar-sarangi.github.io/blender-viewer-field-notes/?scene=cube&v=first-lift-camera-preset-v2).
-
-The landing page embeds the orbitable viewer at figure scale. Choose one of three scenes, then drag to orbit, scroll to zoom, and use the viewer's Play, Loop, and timeline controls.
+The landing page embeds the viewer at figure scale. Choose a scene, drag to orbit, scroll to zoom, and use Play, Loop, and the frame scrubber.
 
 ## Examples
 
-- **Lantern Ridge** — an amber-lit courier crosses an A.N.T. Landscape mountain range. [Open in the live viewer](https://tushar-sarangi.github.io/blender-viewer-field-notes/?scene=lantern&v=lift-camera-v3) · [Download the editable scene](assets/lantern-ridge.blend)
-- **Paper Moon** — a signal probe moves over a layered dusk landscape. [Open in the live viewer](https://tushar-sarangi.github.io/blender-viewer-field-notes/?scene=moon&v=lift-camera-v3) · [Download the editable scene](assets/paper-moon-signal.blend)
-- **First Lift** — the Blender default cube rises on Z, returns to its start, and loops with stepped object-action keys. Its embedded view uses the authored Blender camera position, focus point, and lens framing so the browser composition matches the loop preview. [Open in the live viewer](https://tushar-sarangi.github.io/blender-viewer-field-notes/?scene=cube&v=first-lift-camera-preset-v2) · [Download the editable scene](assets/default-cube.blend)
+- **Lantern Ridge** — a stop-motion courier crosses a procedural A.N.T. Landscape range. [View](https://tushar-sarangi.github.io/blender-viewer-field-notes/?scene=lantern) · [Download `.blend`](assets/lantern-ridge.blend)
+- **Paper Moon** — a signal probe moves through a layered dusk landscape. [View](https://tushar-sarangi.github.io/blender-viewer-field-notes/?scene=moon) · [Download `.blend`](assets/paper-moon-signal.blend)
+- **First Lift** — the default cube rises along Z, returns, and loops on object-action keys. [View](https://tushar-sarangi.github.io/blender-viewer-field-notes/?scene=cube) · [Download `.blend`](assets/default-cube.blend)
+- **Constraint Arc** — Follow Path and Copy Location constraints move a signal and beacon around an orbit. [View](https://tushar-sarangi.github.io/blender-viewer-field-notes/?scene=constraint) · [Download `.blend`](assets/constraint-arc.blend)
+- **Motion Mechanics** — armature pose animation repeats in NLA beside an animated Simple Deform modifier and a rigid-body domino / marble study. [View](https://tushar-sarangi.github.io/blender-viewer-field-notes/?scene=mechanics) · [Download `.blend`](assets/motion-mechanics.blend)
 
-![First Lift looping preview, rendered from the same Blender scene](assets/default-cube-loop.gif?v=lift-camera-v3)
+The two advanced examples include adjacent `.bva.gz` files. These contain sampled geometry and world transforms produced by Blender's evaluated dependency graph, allowing the browser viewer to display constraints, rig deformation, NLA, animated modifiers, and physics results. Blender performs the evaluation; the browser replays the samples. The `.blend` files remain the editable source scenes.
 
-First Lift's camera is centered and widened to keep the cube's complete vertical motion in frame. The looping preview is rendered from that same camera and `.blend` file.
+## Rebuild an evaluated cache
 
-The viewer and scenes are bundled on this Pages origin, so visitors do not need access to the private source repository. See [blender-viewer.docs.md](blender-viewer.docs.md) for supported animation data and limitations.
+With Blender 5.x installed, run the exporter for a saved scene:
 
-## Attribution and license
+```sh
+blender -b scene.blend --python blender-viewer-bake.py -- --step 1
+```
 
-The browser viewer derives from Simon Willison's [`simonw/tools`](https://github.com/simonw/tools) and is distributed under Apache License 2.0. The full license text is in [LICENSE](LICENSE); [NOTICE](NOTICE) records attribution and significant changes, including the OC initials in the Blender sample. The terrain meshes were generated with A.N.T. Landscape 0.2.0; its attribution is also in `NOTICE`. The extension source is not included.
+The exporter writes `scene.blend.bva.gz`. It automatically bakes an unbaked rigid-body world; bake cloth and other non-rigid-body caches in Blender first. Adjust the interval with `--start`, `--end`, and `--step`. The viewer looks for the sidecar beside the `.blend` file or accepts an explicit `bake` URL parameter.
 
+To recreate the two generic advanced sample scenes and previews:
+
+```sh
+blender --background --python examples/build_evaluated_demos.py -- --output-dir assets
+blender -b assets/constraint-arc.blend --python blender-viewer-bake.py -- --step 2
+blender -b assets/motion-mechanics.blend --python blender-viewer-bake.py -- --step 2
+```
+
+This standalone Pages bundle includes the viewer, editable scenes, caches, preview art, and licensing files, so it does not depend on access to the private source fork. Full attribution and the Apache License 2.0 text are in [NOTICE](NOTICE) and [LICENSE](LICENSE). Terrain meshes were generated with A.N.T. Landscape 0.2.0; its extension source is not included.
